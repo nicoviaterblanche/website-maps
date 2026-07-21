@@ -367,6 +367,7 @@ li {
 .thm-btn:hover,
 .thm-btn:focus {
   color: #ffffff;
+  transform: translateY(-3px);
 }
 
 
@@ -1492,6 +1493,7 @@ animation: spinner 1s infinite linear;
 .stricky-header .main-menu__list>li.current>a,
 .stricky-header .main-menu__list>li:hover>a {
   color: var(--thm-primary);
+  transform: translateY(-3px);
 }
 
 .main-menu .main-menu__list>li.dropdown>a,
@@ -3878,6 +3880,12 @@ Features One
   padding: 60px 30px 52px;
   border-bottom-right-radius: 60px;
   margin-bottom: 30px;
+  transition: all 300ms ease;
+}
+
+.features-one__single:hover {
+  transform: translateY(-8px);
+  box-shadow: 0px 15px 40px 0px rgb(9, 24, 84, 0.15);
 }
 
 .features-one__single.mb60 {

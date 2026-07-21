@@ -331,8 +331,8 @@
 
                                     <div class="content-box">
                                         <h2>Note</h2>
-                                        <p>Fill in the form and submit &mdash; it opens your email app with your
-                                            details pre-filled. Please attach your CV before sending.</p>
+                                        <p>Fill in the form, attach your CV, and submit &mdash; it's emailed to
+                                            our team automatically. No need to open your own email app.</p>
                                     </div>
                                 </div>
                             </div>
@@ -344,6 +344,10 @@
                     <div class="col-xl-8 col-lg-8 col-md-7">
                         <div class="contact-page__form">
                             <form id="vacancy-application-form" class="comment-one__form contact-form-validated" novalidate="novalidate">
+                                <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_ACCESS_KEY">
+                                <input type="hidden" name="subject" value="New Job Application - Gabs and Maps Multi-Purpose">
+                                <input type="hidden" name="from_name" value="Gabs and Maps Vacancies Form">
+                                <input type="checkbox" name="botcheck" style="display: none;" tabindex="-1" autocomplete="off">
                                 <div class="row">
                                     <div class="col-xl-6 col-lg-6">
                                         <div class="comment-form__input-box">
@@ -379,10 +383,15 @@
                                         <div class="comment-form__input-box">
                                             <textarea name="applicant_message" placeholder="Tell us about your experience and availability"></textarea>
                                         </div>
-                                        <p style="margin-bottom: 20px; font-size: 14px;">
-                                            <i class="fa fa-paperclip" aria-hidden="true"></i>
-                                            Remember to attach your CV/resume in the email that opens after you submit.
-                                        </p>
+                                        <div class="comment-form__input-box">
+                                            <label style="display:block; margin-bottom:8px; font-size:14px;">
+                                                <i class="fa fa-paperclip" aria-hidden="true"></i>
+                                                Attach your CV/resume (PDF or Word)
+                                            </label>
+                                            <input type="file" name="attachment" accept=".pdf,.doc,.docx" required
+                                                style="margin-bottom:16px;">
+                                        </div>
+                                        <div id="vacancy-form-result" style="margin-bottom: 16px; font-size: 15px;"></div>
                                         <button class="thm-btn" type="submit" data-loading-text="Please wait...">
                                             <span class="txt">
                                                 Submit Application +
@@ -659,29 +668,43 @@
     <!-- Template js -->
     <script src="assets/js/custom.js"></script>
 
-    <!-- Vacancy application form: builds a mailto link since this is a static site -->
+    <!-- Vacancy application form: submits directly to Web3Forms, which emails the application (with CV attachment) to us -->
     <script>
         (function () {
             var form = document.getElementById('vacancy-application-form');
+            var result = document.getElementById('vacancy-form-result');
             if (!form) return;
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                var name = form.applicant_name.value.trim();
-                var email = form.applicant_email.value.trim();
-                var phone = form.applicant_phone.value.trim();
-                var position = form.position.value;
-                var message = form.applicant_message.value.trim();
+                var submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                result.style.color = '';
+                result.textContent = 'Sending your application...';
 
-                var subject = 'Job Application - ' + position + (name ? ' - ' + name : '');
-                var body = 'Name: ' + name +
-                    '\nEmail: ' + email +
-                    '\nPhone: ' + phone +
-                    '\nPosition applying for: ' + position +
-                    '\n\nMessage:\n' + message +
-                    '\n\n(Please attach your CV/resume to this email before sending.)';
+                var formData = new FormData(form);
 
-                window.location.href = 'mailto:info@gabsnmaps.com?subject=' +
-                    encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+                fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: formData
+                })
+                    .then(function (response) { return response.json(); })
+                    .then(function (json) {
+                        submitBtn.disabled = false;
+                        if (json.success) {
+                            result.style.color = 'green';
+                            result.textContent = 'Thanks! Your application has been sent.';
+                            form.reset();
+                        } else {
+                            result.style.color = 'red';
+                            result.textContent = json.message || 'Something went wrong. Please email your CV to info@gabsnmaps.com instead.';
+                        }
+                    })
+                    .catch(function () {
+                        submitBtn.disabled = false;
+                        result.style.color = 'red';
+                        result.textContent = 'Something went wrong. Please email your CV to info@gabsnmaps.com instead.';
+                    });
             });
         })();
     </script>
